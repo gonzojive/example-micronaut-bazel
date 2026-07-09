@@ -1,0 +1,8 @@
+# JVM flags for KotlinKapt to allow access to compiler internals
+build --worker_extra_flag='KotlinKapt=--wrapper_script_flag=--jvm_flags=--add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED'
+build --worker_extra_flag='KotlinKapt=--wrapper_script_flag=--jvm_flags=--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED'
+build --worker_extra_flag='KotlinKapt=--wrapper_script_flag=--jvm_flags=--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED'
+build --worker_extra_flag='KotlinKapt=--wrapper_script_flag=--jvm_flags=--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED'
+build --worker_extra_flag='KotlinKapt=--wrapper_script_flag=--jvm_flags=--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED'
+build --worker_extra_flag='KotlinKapt=--wrapper_script_flag=--jvm_flags=--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED'
+build --worker_extra_flag='KotlinKapt=--wrapper_script_flag=--jvm_flags=--add-opens=java.base/java.lang=ALL-UNNAMED'

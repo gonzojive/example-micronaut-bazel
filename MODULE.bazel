@@ -1,0 +1,35 @@
+module(
+    name = "kind_hertz",
+    version = "1.0.0",
+)
+
+bazel_dep(name = "rules_kotlin", version = "2.4.0")
+bazel_dep(name = "grpc_kotlin", version = "1.5.0")
+bazel_dep(name = "rules_jvm_external", version = "6.9")
+bazel_dep(name = "rules_proto", version = "7.1.0")
+bazel_dep(name = "rules_java", version = "9.3.0")
+bazel_dep(name = "grpc-java", version = "1.82.0")
+bazel_dep(name = "protobuf", version = "29.0")
+
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    artifacts = [
+        "io.micronaut:micronaut-inject:4.5.0",
+        "io.micronaut:micronaut-inject-java:4.5.0",
+        "io.micronaut:micronaut-runtime:4.5.0",
+        "io.micronaut:micronaut-context:4.5.0",
+        "io.micronaut.grpc:micronaut-grpc-server-runtime:4.3.0",
+        "io.micronaut.grpc:micronaut-grpc-annotation:4.3.0",
+        "jakarta.annotation:jakarta.annotation-api:2.1.1",
+        "jakarta.inject:jakarta.inject-api:2.0.1",
+        "org.slf4j:slf4j-api:2.0.12",
+        "ch.qos.logback:logback-classic:1.5.6",
+    ],
+)
+maven.install(
+    name = "grpc_kotlin_maven",
+    artifacts = [
+        "com.google.protobuf:protobuf-kotlin:4.30.2",
+    ],
+)
+use_repo(maven, "maven", "grpc_kotlin_maven")

@@ -1,0 +1,6 @@
+--- a/java_grpc_library.bzl
++++ b/java_grpc_library.bzl
+@@ -3,2 +3,3 @@
+ load("@rules_java//java:defs.bzl", "JavaInfo", "JavaPluginInfo", "java_common")
++load("@rules_proto//proto:defs.bzl", "ProtoInfo")
+ 

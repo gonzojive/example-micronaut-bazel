@@ -1,0 +1,137 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library")
+load("@grpc_kotlin//:kt_jvm_grpc.bzl", "kt_jvm_grpc_library", "kt_jvm_proto_library")
+load("@rules_java//java:defs.bzl", "java_library", "java_plugin")
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@protobuf//bazel:java_proto_library.bzl", "java_proto_library")
+
+java_proto_library(
+    name = "hello_java_proto",
+    deps = [":hello_proto"],
+)
+
+java_plugin(
+    name = "micronaut_inject_processor",
+    processor_class = "io.micronaut.annotation.processing.TypeElementVisitorProcessor",
+    generates_api = 1,
+    deps = [
+        "@maven//:io_micronaut_micronaut_inject",
+        "@maven//:io_micronaut_micronaut_inject_java",
+        "@maven//:io_micronaut_grpc_micronaut_grpc_annotation",
+        "@maven//:jakarta_inject_jakarta_inject_api",
+        "@maven//:jakarta_annotation_jakarta_annotation_api",
+    ],
+)
+
+java_plugin(
+    name = "micronaut_aggregating_processor",
+    processor_class = "io.micronaut.annotation.processing.AggregatingTypeElementVisitorProcessor",
+    generates_api = 1,
+    deps = [
+        "@maven//:io_micronaut_micronaut_inject",
+        "@maven//:io_micronaut_micronaut_inject_java",
+        "@maven//:io_micronaut_grpc_micronaut_grpc_annotation",
+        "@maven//:jakarta_inject_jakarta_inject_api",
+        "@maven//:jakarta_annotation_jakarta_annotation_api",
+    ],
+)
+
+java_plugin(
+    name = "micronaut_bean_definition_processor",
+    processor_class = "io.micronaut.annotation.processing.BeanDefinitionInjectProcessor",
+    generates_api = 1,
+    deps = [
+        "@maven//:io_micronaut_micronaut_inject",
+        "@maven//:io_micronaut_micronaut_inject_java",
+        "@maven//:io_micronaut_grpc_micronaut_grpc_annotation",
+        "@maven//:jakarta_inject_jakarta_inject_api",
+        "@maven//:jakarta_annotation_jakarta_annotation_api",
+    ],
+)
+
+java_plugin(
+    name = "micronaut_package_config_processor",
+    processor_class = "io.micronaut.annotation.processing.PackageConfigurationInjectProcessor",
+    generates_api = 1,
+    deps = [
+        "@maven//:io_micronaut_micronaut_inject",
+        "@maven//:io_micronaut_micronaut_inject_java",
+        "@maven//:io_micronaut_grpc_micronaut_grpc_annotation",
+        "@maven//:jakarta_inject_jakarta_inject_api",
+        "@maven//:jakarta_annotation_jakarta_annotation_api",
+    ],
+)
+
+proto_library(
+    name = "hello_proto",
+    srcs = ["src/main/proto/hello.proto"],
+)
+
+kt_jvm_proto_library(
+    name = "hello_kt_proto",
+    deps = [":hello_proto"],
+)
+
+kt_jvm_grpc_library(
+    name = "hello_kt_grpc",
+    srcs = [":hello_proto"],
+    deps = [":hello_kt_proto"],
+)
+
+kt_jvm_library(
+    name = "app_lib",
+    srcs = glob(["src/main/kotlin/**/*.kt"]),
+    resources = glob(["src/main/resources/**/*"]),
+    plugins = [
+        ":micronaut_inject_processor",
+        ":micronaut_aggregating_processor",
+        ":micronaut_bean_definition_processor",
+        ":micronaut_package_config_processor",
+    ],
+    deps = [
+        ":hello_kt_grpc",
+        ":hello_kt_proto",
+        ":service_java_lib",
+        "@maven//:ch_qos_logback_logback_classic",
+        "@maven//:io_micronaut_grpc_micronaut_grpc_server_runtime",
+        "@maven//:io_micronaut_micronaut_context",
+        "@maven//:io_micronaut_micronaut_inject",
+        "@maven//:io_micronaut_micronaut_runtime",
+        "@maven//:jakarta_annotation_jakarta_annotation_api",
+        "@maven//:jakarta_inject_jakarta_inject_api",
+        "@maven//:org_slf4j_slf4j_api",
+    ],
+)
+
+java_library(
+    name = "service_java_lib",
+    srcs = ["src/main/kotlin/example/HelloServiceJava.java"],
+    plugins = [
+        ":micronaut_inject_processor",
+        ":micronaut_aggregating_processor",
+        ":micronaut_bean_definition_processor",
+        ":micronaut_package_config_processor",
+    ],
+    deps = [
+        ":hello_java_proto",
+        ":hello_kt_grpc",
+        "@grpc-java//stub",
+        "@maven//:io_micronaut_grpc_micronaut_grpc_annotation",
+        "@maven//:io_micronaut_grpc_micronaut_grpc_server_runtime",
+        "@maven//:io_micronaut_micronaut_inject",
+        "@maven//:io_micronaut_micronaut_context",
+        "@maven//:jakarta_inject_jakarta_inject_api",
+        "@maven//:jakarta_annotation_jakarta_annotation_api",
+    ],
+)
+
+kt_jvm_binary(
+    name = "app",
+    main_class = "example.AppKt",
+    runtime_deps = [":app_lib"],
+)
+
+kt_jvm_binary(
+    name = "client",
+    main_class = "example.ClientKt",
+    runtime_deps = [":app_lib"],
+)
