@@ -110,7 +110,7 @@ public class HelloServiceJava extends GreeterGrpc.GreeterImplBase {
     }
 }
 ```
-*   `@GrpcService`: A specialized Micronaut stereotype annotation that inherits from `@Singleton`. It exposes this bean to Micronaut's gRPC server engine so that the server knows to route matching gRPC requests to this class.
+*   `@GrpcService`: A specialized Micronaut stereotype annotation (an annotation that designates a class as serving a specific architectural role—in this case, a gRPC service endpoint—and automatically registers it as a bean in the dependency injection context) that inherits from `@Singleton`. It exposes this bean to Micronaut's gRPC server engine so that the server knows to route matching gRPC requests to this class.
 *   `StreamObserver`: The asynchronous callback receiver used by gRPC java stubs to stream response messages back to the client.
 
 ### 3. Bootstrapping the Server: `src/main/kotlin/example/App.kt`
