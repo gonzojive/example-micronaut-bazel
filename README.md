@@ -50,6 +50,119 @@ In a Bazel environment, compiling mixed Kotlin/Java codebases while running anno
 
 ---
 
+## Code Walkthrough (For Micronaut Beginners)
+
+Let's walk through the core parts of the microservice.
+
+### 1. The API Contract: `src/main/proto/hello.proto`
+gRPC services are defined using Protocol Buffers. We define a simple `Greeter` service with a `SayHello` method:
+
+```proto
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "example";
+option java_outer_classname = "HelloWorldProto";
+
+package example;
+
+// The greeting service definition.
+service Greeter {
+  // Sends a greeting
+  rpc SayHello (HelloRequest) returns (HelloReply) {}
+}
+
+// The request message containing the user's name.
+message HelloRequest {
+  string name = 1;
+}
+
+// The response message containing the greetings
+message HelloReply {
+  string message = 1;
+}
+```
+
+### 2. The Service Implementation: `src/main/kotlin/example/HelloServiceJava.java`
+This class implements the generated `GreeterGrpc.GreeterImplBase` stub interface. We annotate it with `@GrpcService` to register it as a gRPC endpoint:
+
+```java
+package example;
+
+import io.grpc.stub.StreamObserver;
+import io.micronaut.grpc.annotation.GrpcService;
+import jakarta.inject.Singleton;
+
+@GrpcService 
+@Singleton
+public class HelloServiceJava extends GreeterGrpc.GreeterImplBase {
+    @Override
+    public void sayHello(HelloRequest request, StreamObserver<HelloReply> responseObserver) {
+        String name = request.getName();
+        if (name == null || name.trim().isEmpty()) {
+            name = "World";
+        }
+        HelloReply reply = HelloReply.newBuilder()
+            .setMessage("Hello " + name + "!")
+            .build();
+        responseObserver.onNext(reply);
+        responseObserver.onCompleted();
+    }
+}
+```
+*   `@GrpcService`: A specialized Micronaut stereotype annotation that inherits from `@Singleton`. It exposes this bean to Micronaut's gRPC server engine so that the server knows to route matching gRPC requests to this class.
+*   `StreamObserver`: The asynchronous callback receiver used by gRPC java stubs to stream response messages back to the client.
+
+### 3. Bootstrapping the Server: `src/main/kotlin/example/App.kt`
+Starting the microservice is extremely simple. We call the Micronaut bootstrapper to scan our package and startup the Netty server:
+
+```kotlin
+package example
+
+import io.micronaut.runtime.Micronaut
+
+fun main(args: Array<String>) {
+    Micronaut.build()
+        .args(*args)
+        .packages("example")
+        .start()
+}
+```
+*   `Micronaut.build()`: Configures the boot runtime context.
+*   `.packages("example")`: Restricts package scanning to the specified root package to keep DI startup as fast as possible.
+*   `.start()`: Starts the dependency injection context and fires up the gRPC Netty server on port `50051`.
+
+### 4. Testing with the Client: `src/main/kotlin/example/Client.kt`
+We also provide a client script that uses Kotlin Coroutines to asynchronously query the server:
+
+```kotlin
+package example
+
+import io.grpc.ManagedChannelBuilder
+import kotlinx.coroutines.runBlocking
+
+fun main() {
+    val channel = ManagedChannelBuilder.forAddress("localhost", 50051)
+        .usePlaintext()
+        .build()
+
+    val stub = GreeterGrpcKt.GreeterCoroutineStub(channel)
+
+    runBlocking {
+        val request = HelloRequest.newBuilder().setName("Antigravity").build()
+        println("Sending request: ${request.name}...")
+        val response = stub.sayHello(request)
+        println("Received response: ${response.message}")
+    }
+
+    channel.shutdown()
+}
+```
+*   `ManagedChannelBuilder`: Establishes the TCP connection to the gRPC server.
+*   `GreeterCoroutineStub`: The coroutine-based client stub compiled by `grpc_kotlin` from the protobuf schema. It allows you to write non-blocking asynchronous calls in a clean, synchronous-looking style.
+
+---
+
 ## How to Run
 
 ### Step 1: Clone and Build
