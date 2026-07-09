@@ -9,7 +9,7 @@ This project showcases how to setup a fast-starting, compile-time dependency-inj
 ## Technical Overview
 
 ### 1. Ahead-of-Time (AoT) Dependency Injection
-Unlike traditional frameworks that use runtime reflection to scan packages and instantiate beans, **Micronaut** performs dependency injection at compile time using annotation processors. 
+Unlike traditional frameworks that use runtime reflection to scan packages and instantiate beans (objects whose lifecycle and dependencies are managed by the framework's dependency injection container), **Micronaut** performs dependency injection at compile time using annotation processors. 
 This results in:
 - Extremely fast startup times (typically sub-second).
 - Zero reflection overhead at runtime.
